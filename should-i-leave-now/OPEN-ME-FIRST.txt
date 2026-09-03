@@ -1,0 +1,27 @@
+Should I Leave Now? — how to open it
+====================================
+
+QUICKEST LOOK (no tools needed)
+-------------------------------
+Open:  dist/index.html
+This is the prebuilt version. Double-clicking it works.
+
+DO NOT double-click index.html in this top folder.
+That is a source file. It loads /src/main.js as an ES module, and browsers
+block modules over file:// for security. You will get an unstyled page with
+plain serif text and no colour. That is not a bug in the app.
+
+TO DEVELOP
+----------
+  npm install
+  npm run dev        ->  http://localhost:5173
+
+OTHER COMMANDS
+--------------
+  npm test           ->  79 tests
+  npm run build      ->  regenerates dist/
+  npm run preview    ->  serves dist/ on a local port
+  npm run lint
+  npm run format
+
+Requires Node 20.19+ (tested on Node 22).

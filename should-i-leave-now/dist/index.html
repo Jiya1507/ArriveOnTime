@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Should I Leave Now? — a commute decision engine</title>
+    <meta
+      name="description"
+      content="Maps tell you how long the journey takes. This works out the exact minute you should walk out of the door."
+    />
+    <meta name="theme-color" content="#f7ede2" />
+
+    <!-- Set the theme before first paint so the linen ground never flashes. -->
+    <script>
+      (function () {
+        try {
+          var prefs = JSON.parse(localStorage.getItem('should_i_leave_now_v2') || '{}');
+          var dark = prefs.theme
+            ? prefs.theme === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* light is the default */
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-nPE_3Ejn.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DkQpPihU.css">
+  </head>
+
+  <body class="min-h-screen">
+    <a
+      href="#hero"
+      class="focus:bg-surface sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-xl focus:px-3 focus:py-2"
+      >Skip to the decision</a
+    >
+
+    <header
+      class="border-line bg-page/85 supports-[backdrop-filter]:bg-page/70 sticky top-0 z-40 border-b backdrop-blur"
+    >
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+        <div class="flex min-w-0 items-center gap-2.5">
+          <span
+            class="bg-ink text-surface grid h-8 w-8 shrink-0 place-items-center rounded-xl"
+            data-icon="clock"
+            aria-hidden="true"
+          ></span>
+          <h1 class="truncate text-base font-semibold tracking-tight sm:text-xl">
+            Should I Leave Now?
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <p id="weather-chip" class="chip hidden sm:inline-flex">
+            <span data-icon="cloud-rain" aria-hidden="true"></span>
+            <span id="weather-text">29°C · Rain</span>
+          </p>
+
+          <button
+            id="btn-refresh"
+            type="button"
+            class="btn btn--ghost"
+            aria-label="Refresh demo conditions"
+          >
+            <span id="refresh-icon" data-icon="refresh-cw" aria-hidden="true"></span>
+          </button>
+
+          <button
+            id="btn-theme"
+            type="button"
+            class="btn btn--ghost"
+            aria-label="Switch between light and dark"
+          >
+            <span id="theme-icon" data-icon="moon" aria-hidden="true"></span>
+          </button>
+
+          <button
+            id="btn-sim"
+            type="button"
+            class="chip"
+            aria-expanded="false"
+            aria-controls="sim-panel"
+          >
+            Simulate
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div
+      id="alert"
+      role="status"
+      aria-live="polite"
+      class="border-line hidden border-b px-4 py-2.5 text-center text-xs sm:text-sm"
+    >
+      <div class="mx-auto flex max-w-6xl items-center justify-center gap-2">
+        <span id="alert-icon" data-icon="info" aria-hidden="true" class="shrink-0"></span>
+        <p class="min-w-0"><strong id="alert-headline"></strong> <span id="alert-detail"></span></p>
+        <button id="btn-dismiss" type="button" class="ml-2 shrink-0 underline">Dismiss</button>
+      </div>
+    </div>
+
+    <main class="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6">
+      <!-- Simulator ------------------------------------------------------- -->
+      <section id="sim-panel" class="card hidden" aria-labelledby="sim-title">
+        <div class="flex items-center justify-between gap-3">
+          <h2 id="sim-title" class="card-title">Try different conditions</h2>
+          <span class="chip">Mock services</span>
+        </div>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div>
+            <label class="field-label" for="sim-traffic">Traffic</label>
+            <select id="sim-traffic" class="field">
+              <option value="light">Light</option>
+              <option value="heavy" selected>Heavy</option>
+              <option value="severe">Severe</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="sim-weather">Weather</label>
+            <select id="sim-weather" class="field">
+              <option value="clear">Clear</option>
+              <option value="rain" selected>Rain</option>
+              <option value="storm">Storm</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="sim-parking">Parking</label>
+            <select id="sim-parking" class="field">
+              <option value="" selected>Destination estimate</option>
+              <option value="3">Easy (3 min)</option>
+              <option value="8">Moderate (8 min)</option>
+              <option value="15">Difficult (15 min)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="sim-confidence">Confidence</label>
+            <select id="sim-confidence" class="field">
+              <option value="" selected>Provider estimate</option>
+              <option value="0.95">High (95%)</option>
+              <option value="0.87">Moderate (87%)</option>
+              <option value="0.5">Low (50%)</option>
+            </select>
+          </div>
+        </div>
+        <p class="card-note">
+          Parking and confidence stay with the destination's own estimate until you override them
+          here.
+        </p>
+      </section>
+
+      <!-- Hero ------------------------------------------------------------ -->
+      <section
+        id="hero"
+        class="card hero accent-get_ready gap-0 p-0"
+        aria-labelledby="hero-heading"
+      >
+        <h2 id="hero-heading" class="sr-only">Your departure</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <!-- decision -->
+          <div id="hero-decision" class="flex min-w-0 flex-col gap-4 p-5 sm:p-6"></div>
+
+          <!-- signature timeline -->
+          <div
+            id="hero-timeline"
+            class="border-line flex min-w-0 flex-col gap-3 border-t p-5 sm:p-6 lg:border-t-0 lg:border-l"
+          ></div>
+        </div>
+      </section>
+
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <!-- Left column ------------------------------------------------- -->
+        <div class="flex min-w-0 flex-col gap-5 lg:col-span-7">
+          <section class="card" aria-labelledby="breakdown-heading">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 id="breakdown-heading" class="card-title">Where the time goes</h2>
+                <p class="card-note" id="breakdown-note"></p>
+              </div>
+              <button
+                id="btn-ledger"
+                type="button"
+                class="chip"
+                aria-expanded="false"
+                aria-controls="ledger"
+              >
+                Backwards ledger
+              </button>
+            </div>
+            <div id="breakdown" class="flex flex-col gap-1.5"></div>
+            <div id="ledger" class="hidden"></div>
+          </section>
+
+          <section class="card" aria-labelledby="buffer-heading">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 id="buffer-heading" class="card-title">How early do you like to be?</h2>
+                <p class="card-note" id="buffer-explainer"></p>
+              </div>
+              <span id="buffer-value" class="chip chip--teal">15 min early</span>
+            </div>
+            <label class="sr-only" for="buffer-slider">Preferred early arrival, in minutes</label>
+            <input id="buffer-slider" type="range" min="0" max="30" step="5" value="15" />
+            <div class="text-ink-muted flex justify-between text-xs font-medium">
+              <span>Just in time</span><span>10</span><span>20</span><span>30 min</span>
+            </div>
+            <p id="snooze-note" class="text-coral-deep hidden text-xs font-semibold"></p>
+          </section>
+
+          <section class="card" aria-labelledby="scenarios-heading">
+            <div class="min-w-0">
+              <h2 id="scenarios-heading" class="card-title">What if you left instead at…</h2>
+              <p class="card-note">Same conditions, different departure.</p>
+            </div>
+            <div id="scenarios" class="grid grid-cols-2 gap-2.5 sm:grid-cols-4"></div>
+          </section>
+        </div>
+
+        <!-- Right column ------------------------------------------------ -->
+        <div class="flex min-w-0 flex-col gap-5 lg:col-span-5">
+          <section class="card" aria-labelledby="arrival-heading">
+            <h2 id="arrival-heading" class="card-title">When you'll get there</h2>
+            <div id="arrival-body" class="flex flex-col gap-2"></div>
+            <div class="border-line grid grid-cols-2 gap-3 border-t pt-3">
+              <div class="min-w-0">
+                <p class="field-label">Confidence</p>
+                <p id="confidence-value" class="text-lg font-semibold tabular-nums">—</p>
+                <p id="confidence-note" class="card-note"></p>
+              </div>
+              <div class="min-w-0">
+                <p class="field-label">Risk score</p>
+                <p id="risk-value" class="text-lg font-semibold tabular-nums">—</p>
+                <p id="risk-note" class="card-note"></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="schedule-heading">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 id="schedule-heading" class="card-title">Your schedule</h2>
+                <p class="card-note" id="schedule-note"></p>
+              </div>
+              <button id="btn-add-meeting" type="button" class="btn btn--quiet">
+                <span data-icon="plus" aria-hidden="true"></span>Add
+              </button>
+            </div>
+            <ul id="schedule" class="flex flex-col gap-2"></ul>
+          </section>
+
+          <section class="card" aria-labelledby="trip-heading">
+            <div class="flex items-center justify-between gap-3">
+              <h2 id="trip-heading" class="card-title">This trip</h2>
+              <span id="trip-distance" class="chip"></span>
+            </div>
+
+            <form id="trip-form" class="flex flex-col gap-3">
+              <div>
+                <label class="field-label" for="input-destination">Destination</label>
+                <select id="input-destination" class="field">
+                  <option value="Gurgaon">Cyber Hub, Gurgaon</option>
+                  <option value="Connaught Place">Connaught Place, Delhi</option>
+                  <option value="Noida">Noida Sector 62</option>
+                  <option value="Airport">IGI Airport T3</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="min-w-0">
+                  <label class="field-label" for="input-date">Date</label>
+                  <input id="input-date" type="date" class="field" />
+                </div>
+                <div class="min-w-0">
+                  <label class="field-label" for="input-time">Be there by</label>
+                  <input id="input-time" type="time" class="field" value="10:00" />
+                </div>
+              </div>
+
+              <div>
+                <label class="field-label" for="input-mode">Getting there by</label>
+                <select id="input-mode" class="field">
+                  <option value="car">Car</option>
+                  <option value="bike">Bike</option>
+                  <option value="transit">Transit</option>
+                </select>
+              </div>
+
+              <p id="trip-note" class="card-note"></p>
+              <button type="submit" class="btn btn--quiet w-full">Update this trip</button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <footer class="text-ink-muted pb-8 text-center text-xs">
+        Traffic, weather and parking come from mock services in
+        <code>src/services/</code>. Swap them for live providers and nothing above them changes.
+      </footer>
+    </main>
+
+    <!-- Add / reschedule ------------------------------------------------- -->
+    <dialog id="meeting-dialog" aria-labelledby="dialog-title">
+      <form id="meeting-form" method="dialog" class="flex flex-col gap-4 p-5">
+        <div class="flex items-start justify-between gap-3">
+          <h2 id="dialog-title" class="card-title">Add a meeting</h2>
+          <button
+            type="button"
+            id="btn-close-dialog"
+            class="btn btn--ghost"
+            aria-label="Close without saving"
+          >
+            <span data-icon="x" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <div>
+          <label class="field-label" for="meeting-title">What is it?</label>
+          <input
+            id="meeting-title"
+            name="title"
+            class="field"
+            placeholder="Client meeting"
+            maxlength="60"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="field-label" for="meeting-destination">Where</label>
+          <select id="meeting-destination" name="destination" class="field">
+            <option value="Gurgaon">Cyber Hub, Gurgaon</option>
+            <option value="Connaught Place">Connaught Place, Delhi</option>
+            <option value="Noida">Noida Sector 62</option>
+            <option value="Airport">IGI Airport T3</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="min-w-0">
+            <label class="field-label" for="meeting-date">Date</label>
+            <input id="meeting-date" name="date" type="date" class="field" required />
+          </div>
+          <div class="min-w-0">
+            <label class="field-label" for="meeting-time">Start time</label>
+            <input id="meeting-time" name="time" type="time" class="field" required />
+          </div>
+        </div>
+
+        <fieldset class="min-w-0">
+          <legend class="field-label">Move it</legend>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="chip" data-shift-minutes="15">+15 min</button>
+            <button type="button" class="chip" data-shift-minutes="60">+1 hour</button>
+            <button type="button" class="chip" data-shift-days="1">Tomorrow</button>
+            <button type="button" class="chip" data-shift-days="7">Next week</button>
+          </div>
+        </fieldset>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="min-w-0">
+            <label class="field-label" for="meeting-mode">Travelling by</label>
+            <select id="meeting-mode" name="mode" class="field">
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="transit">Transit</option>
+            </select>
+          </div>
+          <div class="min-w-0">
+            <label class="field-label" for="meeting-buffer">Arrive early by</label>
+            <select id="meeting-buffer" name="buffer" class="field">
+              <option value="0">Just in time</option>
+              <option value="5">5 min</option>
+              <option value="10">10 min</option>
+              <option value="15" selected>15 min</option>
+              <option value="20">20 min</option>
+              <option value="30">30 min</option>
+            </select>
+          </div>
+        </div>
+
+        <p id="dialog-preview" class="card-note"></p>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="submit" class="btn btn--primary flex-1">Save meeting</button>
+          <button type="button" id="btn-delete-meeting" class="btn btn--quiet hidden">
+            Remove
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+  </body>
+</html>

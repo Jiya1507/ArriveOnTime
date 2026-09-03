@@ -1,0 +1,628 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* --------------------------------------------------------------------------
+   Palette
+   Linen ground, honey and coral for urgency, teal for "you're fine".
+   Semantic tokens flip with the theme; component colours never do.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --honey-bronze: #f6bd60;
+  --linen: #f7ede2;
+  --cotton-rose: #f5cac3;
+  --muted-teal: #84a59d;
+  --light-coral: #f28482;
+
+  --page: var(--linen);
+  --surface: #fffaf4;
+  --surface-sunk: #f9f0e5;
+  --surface-raised: #ffffff;
+  --line: #e7d7c6;
+  --line-strong: #d8c2ab;
+  --ink: #3a2b24;
+  --ink-soft: #5f4a3f;
+  --ink-muted: #74604f;
+  --shadow: 24px 24px 60px -32px rgb(90 62 44 / 0.35);
+
+  /* Chip fills tint the surface, so the label colour has to follow the theme. */
+  --chip-mix: 30%;
+  --chip-mix-rose: 45%;
+  --chip-ink-teal: #1f3b35;
+  --chip-ink-honey: #4a3312;
+  --chip-ink-coral: #5c1d1c;
+  --chip-ink-rose: #5c2a26;
+
+  /* Status text. The accent fills stay constant; the text on them cannot. */
+  --ok: #3f6b61;
+  --warn: #8a6011;
+  --bad: #b23c3a;
+}
+
+.dark {
+  --page: #221915;
+  --surface: #2d221d;
+  --surface-sunk: #261c18;
+  --surface-raised: #372a23;
+  --line: #43332b;
+  --line-strong: #554136;
+  --ink: #f7ede2;
+  --ink-soft: #c4ab98;
+  --ink-muted: #a89080;
+
+  --chip-mix: 30%;
+  --chip-mix-rose: 18%;
+  --chip-ink-teal: #cde5e0;
+  --chip-ink-honey: #f8e2b8;
+  --chip-ink-coral: #f9c9c8;
+  --chip-ink-rose: #f6d8d4;
+
+  --ok: #8fc0b4;
+  --warn: #e8b45f;
+  --bad: #f39c98;
+  --shadow: 24px 24px 60px -32px rgb(0 0 0 / 0.6);
+}
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Inter Variable', ui-sans-serif, sans-serif;
+
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-sunk: var(--surface-sunk);
+  --color-raised: var(--surface-raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+
+  --color-honey: #f6bd60;
+  --color-honey-deep: #d99a2b;
+  --color-linen: #f7ede2;
+  --color-rose: #f5cac3;
+  --color-rose-deep: #d98b82;
+  --color-teal: #84a59d;
+  --color-teal-deep: #4f7a70;
+  --color-coral: #f28482;
+  --color-coral-deep: #c9524f;
+
+  --radius-card: 1.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--page);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    /* A faint warm wash so the linen ground has some depth without decoration. */
+    background-image:
+      radial-gradient(60rem 40rem at 85% -10%, rgb(246 189 96 / 0.18), transparent 60%),
+      radial-gradient(50rem 35rem at -10% 10%, rgb(132 165 157 / 0.14), transparent 55%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-teal-deep);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  ::selection {
+    background: var(--color-honey);
+    color: #3a2b24;
+  }
+
+  input,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  .dark input[type='time']::-webkit-calendar-picker-indicator,
+  .dark input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.65);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Components
+   -------------------------------------------------------------------------- */
+
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-width: 0;
+  }
+
+  .card--flush {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .card-title {
+    font-size: 1.125rem;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  .card-note {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 0.25rem;
+  }
+
+  .field {
+    width: 100%;
+    background: var(--surface-sunk);
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.875rem;
+    min-width: 0;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      transform 0.18s ease;
+    white-space: nowrap;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn--primary {
+    background: var(--ink);
+    color: var(--surface);
+  }
+  .btn--primary:hover {
+    background: var(--color-teal-deep);
+  }
+
+  .btn--quiet {
+    background: var(--surface-sunk);
+    border-color: var(--line);
+    color: var(--ink);
+  }
+  .btn--quiet:hover {
+    background: var(--color-rose);
+    border-color: var(--color-rose-deep);
+    color: #3a2b24;
+  }
+
+  .btn--ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 0.375rem;
+    border-radius: 0.625rem;
+  }
+  .btn--ghost:hover {
+    background: var(--surface-sunk);
+    color: var(--ink);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: var(--surface-sunk);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .chip--honey {
+    background: color-mix(in srgb, var(--color-honey) var(--chip-mix), var(--surface));
+    border-color: var(--color-honey);
+    color: var(--chip-ink-honey);
+  }
+  .chip--teal {
+    background: color-mix(in srgb, var(--color-teal) var(--chip-mix), var(--surface));
+    border-color: var(--color-teal);
+    color: var(--chip-ink-teal);
+  }
+  .chip--coral {
+    background: color-mix(in srgb, var(--color-coral) var(--chip-mix), var(--surface));
+    border-color: var(--color-coral);
+    color: var(--chip-ink-coral);
+  }
+  .chip--rose {
+    background: color-mix(in srgb, var(--color-rose) var(--chip-mix-rose), var(--surface));
+    border-color: var(--color-rose-deep);
+    color: var(--chip-ink-rose);
+  }
+
+  /* Big numerals ---------------------------------------------------------- */
+  .clock {
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 0.92;
+  }
+
+  .clock--hero {
+    font-size: clamp(3.5rem, 9vw, 4.5rem);
+  }
+
+  .clock-meridiem {
+    font-size: 0.34em;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--ink-soft);
+    margin-left: 0.15em;
+  }
+
+  /* Timeline -------------------------------------------------------------- */
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+  }
+
+  .timeline-track {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1 1 auto;
+    min-height: 15rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .band {
+    --band: var(--color-teal);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 1.6rem;
+    padding: 0 0.625rem;
+    border-radius: 0.5rem;
+    background: var(--band);
+    color: #37271f;
+    font-size: 0.75rem;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: flex-grow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .band-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .band-delta {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0 0.4rem;
+    margin-left: 0.35rem;
+    background: rgb(58 43 36 / 0.82);
+    color: #f7ede2;
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+
+  .band--changed {
+    animation: band-flash 1.6s ease-out 2;
+  }
+
+  .band-minutes {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.85;
+    flex: none;
+  }
+
+  .band--travel {
+    --band: #48706a;
+    color: #f4f7f5;
+  }
+  .band--traffic {
+    --band: var(--color-coral);
+  }
+  .band--weather {
+    --band: var(--color-teal);
+  }
+  .band--roadworks {
+    --band: color-mix(in srgb, var(--color-coral) 55%, var(--color-honey));
+  }
+  .band--park {
+    --band: var(--color-honey);
+  }
+  .band--walk {
+    --band: var(--color-rose);
+  }
+  .band--forecast {
+    --band: color-mix(in srgb, var(--color-honey) 45%, var(--surface-sunk));
+    color: var(--ink);
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent 0 6px,
+      rgb(255 255 255 / 0.35) 6px 12px
+    );
+  }
+  .band--buffer {
+    --band: color-mix(in srgb, var(--color-teal) 40%, var(--surface-sunk));
+    color: var(--ink);
+  }
+
+  .timeline-anchor {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    min-width: 0;
+  }
+  .timeline-anchor strong {
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-size: 1.05rem;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  /* Status accents -------------------------------------------------------- */
+  .accent-plenty_time {
+    --accent: var(--color-teal);
+  }
+  .accent-get_ready {
+    --accent: var(--color-honey);
+  }
+  .accent-leave_now {
+    --accent: var(--color-teal-deep);
+  }
+  .accent-running_late {
+    --accent: var(--color-coral);
+  }
+  .accent-missed {
+    --accent: var(--line-strong);
+  }
+
+  .hero {
+    border-color: color-mix(in srgb, var(--accent, var(--line)) 55%, var(--line));
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    border-radius: var(--radius-card) 0 0 var(--radius-card);
+    background: var(--accent, var(--color-teal));
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.75rem;
+    background: var(--surface-sunk);
+    font-size: 0.8125rem;
+    min-width: 0;
+  }
+
+  .meeting-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem 0.75rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    transition:
+      border-color 0.18s ease,
+      background-color 0.18s ease;
+    min-width: 0;
+  }
+  .meeting-row:hover {
+    background: var(--surface-sunk);
+  }
+  .meeting-row[data-active='true'] {
+    border-color: var(--color-teal-deep);
+    background: color-mix(in srgb, var(--color-teal) 14%, var(--surface));
+  }
+  .meeting-row[data-past='true'] {
+    opacity: 0.55;
+  }
+
+  .scenario {
+    border: 1px solid var(--line);
+    border-radius: 0.875rem;
+    background: var(--surface-sunk);
+    padding: 0.625rem 0.5rem;
+    text-align: center;
+    min-width: 0;
+  }
+  .scenario[data-tone='recommended'] {
+    border-color: var(--color-teal-deep);
+    background: color-mix(in srgb, var(--color-teal) 18%, var(--surface));
+  }
+  .scenario[data-tone='risky'] {
+    border-color: var(--color-honey);
+  }
+  .scenario[data-tone='late'] {
+    border-color: var(--color-coral);
+  }
+  .scenario[data-past='true'] {
+    opacity: 0.45;
+  }
+
+  /* Range slider ---------------------------------------------------------- */
+  input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--color-teal) 0%,
+      var(--color-honey) 60%,
+      var(--color-coral) 100%
+    );
+    outline: none;
+    cursor: pointer;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 3px solid var(--surface);
+    box-shadow: 0 1px 6px rgb(90 62 44 / 0.4);
+    cursor: pointer;
+  }
+  input[type='range']::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--ink);
+    border: 3px solid var(--surface);
+    cursor: pointer;
+  }
+
+  /* Dialog ---------------------------------------------------------------- */
+  dialog {
+    /* Preflight zeroes margin on everything, which kills the browser's own
+       centring for modal dialogs — put it back. */
+    margin: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    color: var(--ink);
+    padding: 0;
+    width: min(30rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+  dialog::backdrop {
+    background: rgb(58 43 36 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Motion
+   -------------------------------------------------------------------------- */
+
+@keyframes band-flash {
+  0%,
+  100% {
+    filter: none;
+  }
+  40% {
+    filter: brightness(1.14) saturate(1.25);
+  }
+}
+
+@keyframes pulse-accent {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+.is-urgent {
+  animation: pulse-accent 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
